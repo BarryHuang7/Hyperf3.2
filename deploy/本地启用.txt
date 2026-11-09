@@ -1,0 +1,21 @@
+composer install
+复制.env文件
+127.0.0.1需要改成本地的局域网ip
+redis监听0.0.0.0
+
+docker run -d --name hyperf-dev -p 9501:9501 -p 9502:9502 -v D:/phpstudy_pro/WWW/Hyperf-Ju:/opt/www -w /opt/www docker.1ms.run/hyperf/hyperf:8.4-alpine-v3.22-swoole php bin/hyperf.php start
+
+docker images
+docker start hyperf-dev
+docker restart hyperf-dev
+docker logs hyperf-dev
+
+winget install Stripe.StripeCLI
+stripe login
+stripe listen --events payment_intent.succeeded --forward-to 192.168.0.155:9501/api/stripe/webhook
+
+php -r "echo 'base64:'.base64_encode(random_bytes(32)).PHP_EOL;"
+
+winget install ngrok -s msstore
+ngrok config add-authtoken ...
+ngrok http 9501 --url https://overact-unbeaten-grafted.ngrok-free.dev

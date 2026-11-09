@@ -1,0 +1,144 @@
+Ubuntu 24.04
+
+sudo apt update
+
+mysql------------------------------
+sudo apt install mysql-server
+sudo mysql
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '你的强密码';
+FLUSH PRIVILEGES;
+EXIT;
+
+mysql -u root -p
+CREATE USER '你的用户名'@'%' IDENTIFIED BY '你的密码';
+FLUSH PRIVILEGES;
+
+DROP USER '用户名'@'主机名';
+SELECT user, host FROM mysql.user;
+
+GRANT ALL PRIVILEGES ON *.* TO '你的用户名'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+
+sudo vim /etc/mysql/mysql.conf.d/mysqld.cnf
+远程连接
+把 bind-address = 127.0.0.1 改为 0.0.0.0，然后重启 MySQL 服务
+sudo systemctl restart mysql
+
+sudo systemctl status mysql
+
+vim------------------------------
+按 i 进入插入模式，开始编辑
+改完后按 Esc 退出插入模式
+输入 :wq 再按 Enter 保存退出
+如果不想保存，输入 :q! 再按 Enter 强制退出
+
+防火墙------------------------------
+sudo ufw status
+
+redis------------------------------
+sudo apt-get install lsb-release curl gpg
+curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+sudo chmod 644 /usr/share/keyrings/redis-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+sudo apt-get update
+sudo apt-get install redis
+
+sudo systemctl status redis-server
+sudo vim /etc/redis/redis.conf
+
+sudo systemctl restart redis-server
+
+nginx------------------------------
+sudo apt update
+sudo apt install nginx -y
+
+sudo systemctl status nginx
+sudo systemctl restart nginx
+
+配置
+server {
+  listen 80;
+  server_name localhost;
+  
+  location / {
+    proxy_pass http://localhost:9501;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  }
+
+  location /websocket {
+    proxy_pass http://localhost:9502;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  }
+}
+
+rabbitmq------------------------------
+sudo apt update
+sudo apt install rabbitmq-server -y
+
+sudo systemctl status rabbitmq-server
+
+sudo rabbitmq-plugins enable rabbitmq_management
+sudo rabbitmqctl add_user admin 你的强密码
+sudo rabbitmqctl set_user_tags admin administrator
+sudo rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
+
+docker------------------------------
+卸载系统自带的或旧版本的 Docker 相关包（如果提示未安装，忽略即可）
+sudo apt remove docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc
+
+sudo apt update
+sudo apt install -y ca-certificates curl
+
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+镜像加速
+sudo mkdir -p /etc/docker
+sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json <<-'EOF'
+{
+  "registry-mirrors": [
+    "https://xxx.mirror.aliyuncs.com",
+    "https://docker.xuanyuan.me",
+    "https://docker.1ms.run",
+    "https://docker.m.daocloud.io"
+  ]
+}
+EOF
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+构建
+/Dockerfile
+/docker-compose.yml
+/.dockerignore
+/docker-entrypoint.sh
+上传到服务器项目目录
+
+cd 项目目录
+sudo docker compose up -d --build
+
+sudo docker compose restart
+sudo docker compose exec app bash
+sudo docker compose logs -f app
+
+虚拟内存------------------------------
+sudo fallocate -l 4G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+
+free -h
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab

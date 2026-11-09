@@ -1,0 +1,30 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hyperf-app
+    working_dir: /var/www/Hyperf-Ju
+    volumes:
+      - .:/var/www/Hyperf-Ju
+    ports:
+      - "9501:9501"  # Hyperf HTTP port
+      - "9502:9502"  # Hyperf WebSocket port
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - PHP_IDE_CONFIG=serverName=localhost
+      - XDEBUG_MODE=${XDEBUG_MODE:-off}
+      # Host service connections (modify these based on your actual server)
+      - REDIS_HOST=host.docker.internal
+      - REDIS_PORT=6379
+      - MYSQL_HOST=host.docker.internal
+      - MYSQL_PORT=3306
+      - RABBITMQ_HOST=host.docker.internal
+      - RABBITMQ_PORT=5672
+    networks:
+      - hyperf-network
+
+networks:
+  hyperf-network:
+    driver: bridge
